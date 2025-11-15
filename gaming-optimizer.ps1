@@ -90,9 +90,7 @@ $essentialTweaks = @(
     'Disable Activity History',
     'Disable Location Tracking',
     'Disable Storage Sense',
-    'Run Disk Cleanup',
-    'Disable Powershell Telemetry',
-    'Disable Wi-Fi Sense'
+    'Run Disk Cleanup'
 )
 
 foreach ($tweak in $essentialTweaks) {
@@ -135,8 +133,7 @@ $customizeTweaks = @(
     'Disable Advertising ID',
     'Disable Feedback Requests',
     'Configure Windows Update Hours',
-    'Multiplane Overlay',
-    'Cross-Device Resume'
+    'Multiplane Overlay'
 )
 
 foreach ($tweak in $customizeTweaks) {
@@ -212,6 +209,118 @@ foreach ($fix in $fixes) {
     $tabConfig.Controls.Add($btn)
     $yPos += 40
 }
+
+# SERVICES TAB
+$tabServices = New-Object System.Windows.Forms.TabPage
+$tabServices.Text = 'Services'
+$tabServices.BackColor = [System.Drawing.Color]::FromArgb(40, 40, 40)
+$tabControl.TabPages.Add($tabServices)
+
+$lblServices = New-Object System.Windows.Forms.Label
+$lblServices.Location = New-Object System.Drawing.Point(20, 20)
+$lblServices.Size = New-Object System.Drawing.Size(1100, 30)
+$lblServices.Text = 'Services to Disable (Select and click "Disable Selected Services")'
+$lblServices.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
+$lblServices.ForeColor = [System.Drawing.Color]::FromArgb(0, 150, 255)
+$tabServices.Controls.Add($lblServices)
+
+$serviceChks = @{}
+$yPos = 60
+$xPos = 30
+
+$servicesToDisable = @(
+    @{Name='Bluetooth Audio Gateway Service'; Service='BTAGService'},
+    @{Name='Bluetooth Support Service'; Service='bthserv'},
+    @{Name='BitLocker Drive Encryption Service'; Service='BDESVC'},
+    @{Name='Device Management Wireless Service'; Service='dmwappushservice'},
+    @{Name='Downloaded Maps Manager'; Service='MapsBroker'},
+    @{Name='Fax'; Service='Fax'},
+    @{Name='FH V-Host Service'; Service='fhsvc'},
+    @{Name='Hyper-V Data Exchange Service'; Service='vmickvpexchange'},
+    @{Name='Hyper-V Guest Service Interface'; Service='vmicguestinterface'},
+    @{Name='Hyper-V Guest Shutdown Service'; Service='vmicshutdown'},
+    @{Name='Hyper-V Heartbeat Service'; Service='vmicheartbeat'},
+    @{Name='Hyper-V PowerShell Direct Service'; Service='vmicvmsession'},
+    @{Name='Hyper-V Remote Desktop Virtualization'; Service='vmicrdv'},
+    @{Name='Hyper-V Time Synchronization Service'; Service='vmictimesync'},
+    @{Name='Hyper-V Volume Shadow Copy'; Service='vmicvss'},
+    @{Name='Xbox Accessory Management'; Service='XboxGipSvc'},
+    @{Name='Xbox Live Auth Manager'; Service='XblAuthManager'},
+    @{Name='Xbox Live Game Save'; Service='XblGameSave'},
+    @{Name='Xbox Live Networking Service'; Service='XboxNetApiSvc'},
+    @{Name='Windows Image Acquisition'; Service='stisvc'},
+    @{Name='Windows Insider Service'; Service='wisvc'},
+    @{Name='Windows Error Reporting Service'; Service='WerSvc'}
+)
+
+$columnCount = 0
+foreach ($svc in $servicesToDisable) {
+    $chk = New-Object System.Windows.Forms.CheckBox
+    $chk.Location = New-Object System.Drawing.Point($xPos, $yPos)
+    $chk.Size = New-Object System.Drawing.Size(540, 25)
+    $chk.Text = $svc.Name
+    $chk.ForeColor = [System.Drawing.Color]::White
+    $chk.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+    $chk.Tag = $svc.Service
+    $tabServices.Controls.Add($chk)
+    $serviceChks[$svc.Service] = $chk
+    
+    $yPos += 28
+    $columnCount++
+    
+    if ($columnCount -eq 11) {
+        $xPos = 580
+        $yPos = 60
+    }
+}
+
+$btnDisableServices = New-Object System.Windows.Forms.Button
+$btnDisableServices.Location = New-Object System.Drawing.Point(30, 600)
+$btnDisableServices.Size = New-Object System.Drawing.Size(300, 40)
+$btnDisableServices.Text = 'Disable Selected Services'
+$btnDisableServices.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
+$btnDisableServices.BackColor = [System.Drawing.Color]::FromArgb(180, 50, 50)
+$btnDisableServices.ForeColor = [System.Drawing.Color]::White
+$btnDisableServices.FlatStyle = 'Flat'
+$btnDisableServices.Add_Click({
+    $result = [System.Windows.Forms.MessageBox]::Show("Disable selected services?`n`nThis will stop and disable the selected services.", "Confirm", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Warning)
+    if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+        $count = 0
+        foreach ($key in $serviceChks.Keys) {
+            if ($serviceChks[$key].Checked) {
+                try {
+                    Stop-Service -Name $key -Force -ErrorAction SilentlyContinue
+                    Set-Service -Name $key -StartupType Disabled -ErrorAction SilentlyContinue
+                    $count++
+                } catch {}
+            }
+        }
+        [System.Windows.Forms.MessageBox]::Show("Disabled $count services successfully!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }
+})
+$tabServices.Controls.Add($btnDisableServices)
+
+$btnSelectAllServices = New-Object System.Windows.Forms.Button
+$btnSelectAllServices.Location = New-Object System.Drawing.Point(350, 600)
+$btnSelectAllServices.Size = New-Object System.Drawing.Size(200, 40)
+$btnSelectAllServices.Text = 'Select All'
+$btnSelectAllServices.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+$btnSelectAllServices.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 60)
+$btnSelectAllServices.ForeColor = [System.Drawing.Color]::White
+$btnSelectAllServices.FlatStyle = 'Flat'
+$btnSelectAllServices.Add_Click({ foreach ($chk in $serviceChks.Values) { $chk.Checked = $true } })
+$tabServices.Controls.Add($btnSelectAllServices)
+
+$btnDeselectAllServices = New-Object System.Windows.Forms.Button
+$btnDeselectAllServices.Location = New-Object System.Drawing.Point(560, 600)
+$btnDeselectAllServices.Size = New-Object System.Drawing.Size(200, 40)
+$btnDeselectAllServices.Text = 'Deselect All'
+$btnDeselectAllServices.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+$btnDeselectAllServices.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 60)
+$btnDeselectAllServices.ForeColor = [System.Drawing.Color]::White
+$btnDeselectAllServices.FlatStyle = 'Flat'
+$btnDeselectAllServices.Add_Click({ foreach ($chk in $serviceChks.Values) { $chk.Checked = $false } })
+$tabServices.Controls.Add($btnDeselectAllServices)
 
 # Bottom Buttons
 $btnSelectAll = New-Object System.Windows.Forms.Button
