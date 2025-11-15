@@ -22,7 +22,7 @@ $form.Controls.Add($titleLabel)
 
 $tabControl = New-Object System.Windows.Forms.TabControl
 $tabControl.Location = New-Object System.Drawing.Point(20, 70)
-$tabControl.Size = New-Object System.Drawing.Size(1150, 700)
+$tabControl.Size = New-Object System.Drawing.Size(1150, 680)
 $tabControl.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
 $form.Controls.Add($tabControl)
 
@@ -152,7 +152,7 @@ foreach ($tweak in $customizeTweaks) {
 }
 
 $btnRunTweaks = New-Object System.Windows.Forms.Button
-$btnRunTweaks.Location = New-Object System.Drawing.Point(30, 640)
+$btnRunTweaks.Location = New-Object System.Drawing.Point(30, 600)
 $btnRunTweaks.Size = New-Object System.Drawing.Size(250, 40)
 $btnRunTweaks.Text = 'Run Tweaks'
 $btnRunTweaks.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
@@ -215,7 +215,7 @@ foreach ($fix in $fixes) {
 
 # Bottom Buttons
 $btnSelectAll = New-Object System.Windows.Forms.Button
-$btnSelectAll.Location = New-Object System.Drawing.Point(300, 780)
+$btnSelectAll.Location = New-Object System.Drawing.Point(300, 760)
 $btnSelectAll.Size = New-Object System.Drawing.Size(200, 45)
 $btnSelectAll.Text = 'Select All'
 $btnSelectAll.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
@@ -226,7 +226,7 @@ $btnSelectAll.Add_Click({ foreach ($chk in $chks.Values) { $chk.Checked = $true 
 $form.Controls.Add($btnSelectAll)
 
 $btnDeselectAll = New-Object System.Windows.Forms.Button
-$btnDeselectAll.Location = New-Object System.Drawing.Point(520, 780)
+$btnDeselectAll.Location = New-Object System.Drawing.Point(520, 760)
 $btnDeselectAll.Size = New-Object System.Drawing.Size(200, 45)
 $btnDeselectAll.Text = 'Deselect All'
 $btnDeselectAll.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
@@ -237,7 +237,7 @@ $btnDeselectAll.Add_Click({ foreach ($chk in $chks.Values) { $chk.Checked = $fal
 $form.Controls.Add($btnDeselectAll)
 
 $btnApply = New-Object System.Windows.Forms.Button
-$btnApply.Location = New-Object System.Drawing.Point(740, 780)
+$btnApply.Location = New-Object System.Drawing.Point(740, 760)
 $btnApply.Size = New-Object System.Drawing.Size(250, 45)
 $btnApply.Text = 'APPLY'
 $btnApply.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
