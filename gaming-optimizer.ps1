@@ -236,7 +236,7 @@ foreach ($tweak in $customizeTweaks) {
 }
 
 $btnRunTweaks = New-Object System.Windows.Forms.Button
-$btnRunTweaks.Location = New-Object System.Drawing.Point(612, 602)
+$btnRunTweaks.Location = New-Object System.Drawing.Point(610, 602)
 $btnRunTweaks.Size = New-Object System.Drawing.Size(236, 36)
 $btnRunTweaks.Text = 'Run Tweaks'
 $btnRunTweaks.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
