@@ -678,7 +678,7 @@ $lblExtras.ForeColor = [System.Drawing.Color]::FromArgb(220, 50, 50)
 $tabExtras.Controls.Add($lblExtras)
 
 $extrasChks = @{}
-$yPos = 70
+$yPos = 60
 
 $extrasTweaks = @(
     @{Name='Force Shutdown Even When Apps Prevent It'; Reg='HKCU:\Control Panel\Desktop'; Key='AutoEndTasks'; Value='1'; Type='String'},
@@ -703,7 +703,6 @@ $extrasTweaks = @(
     @{Name='Disable Windows Tips and Suggestions'; Reg='HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'; Key='SubscribedContent-338389Enabled'; Value=0; Type='DWord'},
     @{Name='Disable Cortana'; Reg='HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search'; Key='AllowCortana'; Value=0; Type='DWord'},
     @{Name='Disable OneDrive'; Reg='HKLM:\SOFTWARE\Policies\Microsoft\Windows\OneDrive'; Key='DisableFileSyncNGSC'; Value=1; Type='DWord'},
-    @{Name='Disable Notifications Network Pop-up'; Reg='HKLM:\SYSTEM\CurrentControlSet\Control\Network\NewNetworkWindowOff'; Key=''; Value=''; Type='Create'},
     @{Name='Always Show All Tray Icons'; Reg='HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer'; Key='EnableAutoTray'; Value=0; Type='DWord'},
     @{Name='Disable News and Interests on Taskbar'; Reg='HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds'; Key='ShellFeedsTaskbarViewMode'; Value=2; Type='DWord'},
     @{Name='Remove Meet Now from Taskbar'; Reg='HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'; Key='HideSCAMeetNow'; Value=1; Type='DWord'},
@@ -711,10 +710,12 @@ $extrasTweaks = @(
     @{Name='Disable Startup Delay for All Apps'; Reg='HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize'; Key='StartupDelayInMSec'; Value=0; Type='DWord'}
 )
 
+$columnCount = 0
+$xPos = 30
 foreach ($tweak in $extrasTweaks) {
     $chk = New-Object System.Windows.Forms.CheckBox
-    $chk.Location = New-Object System.Drawing.Point(30, $yPos)
-    $chk.Size = New-Object System.Drawing.Size(1080, 22)
+    $chk.Location = New-Object System.Drawing.Point($xPos, $yPos)
+    $chk.Size = New-Object System.Drawing.Size(540, 20)
     $chk.Text = $tweak.Name
     $chk.ForeColor = [System.Drawing.Color]::White
     $chk.Font = New-Object System.Drawing.Font('Segoe UI', 9)
@@ -722,7 +723,13 @@ foreach ($tweak in $extrasTweaks) {
     $chk.Checked = $true
     $tabExtras.Controls.Add($chk)
     $extrasChks[$tweak.Name] = $chk
-    $yPos += 24
+    $yPos += 22
+    $columnCount++
+    
+    if ($columnCount -eq 14) {
+        $xPos = 580
+        $yPos = 60
+    }
 }
 
 $btnApplyExtras = New-Object System.Windows.Forms.Button
