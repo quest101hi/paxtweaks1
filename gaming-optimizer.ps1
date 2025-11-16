@@ -263,15 +263,18 @@ $tabConfig.Controls.Add($lblPanels)
 
 $yPos = 60
 $panels = @('Computer Management', 'Control Panel', 'Network Connections', 'Power Panel', 'Printer Panel', 'Region', 'Windows Restore', 'Sound Settings', 'System Properties', 'Time and Date')
+$panelCommands = @('compmgmt.msc', 'control', 'ncpa.cpl', 'powercfg.cpl', 'control printers', 'intl.cpl', 'rstrui.exe', 'mmsys.cpl', 'sysdm.cpl', 'timedate.cpl')
 
-foreach ($panel in $panels) {
+for ($i = 0; $i -lt $panels.Count; $i++) {
     $btn = New-Object System.Windows.Forms.Button
     $btn.Location = New-Object System.Drawing.Point(30, $yPos)
     $btn.Size = New-Object System.Drawing.Size(480, 35)
-    $btn.Text = $panel
+    $btn.Text = $panels[$i]
     $btn.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
     $btn.ForeColor = [System.Drawing.Color]::White
     $btn.FlatStyle = 'Flat'
+    $btn.Tag = $panelCommands[$i]
+    $btn.Add_Click({ Start-Process $this.Tag -ErrorAction SilentlyContinue })
     $tabConfig.Controls.Add($btn)
     $yPos += 40
 }
@@ -285,16 +288,39 @@ $lblFixes.ForeColor = [System.Drawing.Color]::FromArgb(220, 50, 50)
 $tabConfig.Controls.Add($lblFixes)
 
 $yPos = 60
-$fixes = @('Reset Windows Update', 'Reset Network', 'System Corruption Scan', 'WinGet Reinstall')
+$fixes = @(
+    @{Name='Reset Windows Update'; Action={
+        Stop-Service wuauserv, cryptSvc, bits, msiserver -Force -ErrorAction SilentlyContinue
+        Remove-Item "$env:SystemRoot\SoftwareDistribution" -Recurse -Force -ErrorAction SilentlyContinue
+        Start-Service wuauserv, cryptSvc, bits, msiserver -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Windows Update reset complete!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }},
+    @{Name='Reset Network'; Action={
+        netsh winsock reset
+        netsh int ip reset
+        ipconfig /release
+        ipconfig /renew
+        ipconfig /flushdns
+        [System.Windows.Forms.MessageBox]::Show("Network reset complete! Restart recommended.", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }},
+    @{Name='System Corruption Scan'; Action={
+        Start-Process powershell -ArgumentList "sfc /scannow; DISM /Online /Cleanup-Image /RestoreHealth" -Verb RunAs
+    }},
+    @{Name='WinGet Reinstall'; Action={
+        Start-Process powershell -ArgumentList "Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe" -Verb RunAs
+    }}
+)
 
 foreach ($fix in $fixes) {
     $btn = New-Object System.Windows.Forms.Button
     $btn.Location = New-Object System.Drawing.Point(610, $yPos)
     $btn.Size = New-Object System.Drawing.Size(480, 35)
-    $btn.Text = $fix
+    $btn.Text = $fix.Name
     $btn.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
     $btn.ForeColor = [System.Drawing.Color]::White
     $btn.FlatStyle = 'Flat'
+    $btn.Tag = $fix.Action
+    $btn.Add_Click({ & $this.Tag })
     $tabConfig.Controls.Add($btn)
     $yPos += 40
 }
@@ -510,6 +536,10 @@ $btnApply.Add_Click({
                 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR" -Name "AppCaptureEnabled" -Value 0 -Force -ErrorAction SilentlyContinue
                 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR" -Name "GameDVR_Enabled" -Value 0 -Force -ErrorAction SilentlyContinue
             }
+            if ($chks['Disable Hibernation'].Checked) {
+                Update-Progress "Disabling hibernation..."
+                powercfg -h off
+            }
             if ($chks['Optimize Mouse (No Acceleration)'].Checked) {
                 Update-Progress "Optimizing mouse..."
                 Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Value 0 -ErrorAction SilentlyContinue
@@ -564,22 +594,99 @@ $btnApply.Add_Click({
             if ($chks['Disable Activity History'].Checked) {
                 Update-Progress "Disabling activity history..."
                 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -Value 0 -ErrorAction SilentlyContinue
+                Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -Value 0 -ErrorAction SilentlyContinue
             }
             if ($chks['Disable Location Tracking'].Checked) {
                 Update-Progress "Disabling location..."
                 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" -Name "Value" -Value "Deny" -ErrorAction SilentlyContinue
             }
+            if ($chks['Disable Storage Sense'].Checked) {
+                Update-Progress "Disabling Storage Sense..."
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy" -Name "01" -Value 0 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Run Disk Cleanup'].Checked) {
+                Update-Progress "Running disk cleanup..."
+                Start-Process cleanmgr -ArgumentList "/sagerun:1" -NoNewWindow -ErrorAction SilentlyContinue
+            }
+            if ($chks['Dark Theme for Windows'].Checked) {
+                Update-Progress "Enabling dark theme..."
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "AppsUseLightTheme" -Value 0 -ErrorAction SilentlyContinue
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "SystemUsesLightTheme" -Value 0 -ErrorAction SilentlyContinue
+            }
+            if ($chks['NumLock on Startup'].Checked) {
+                Update-Progress "Enabling NumLock on startup..."
+                Set-ItemProperty -Path "HKU:\.DEFAULT\Control Panel\Keyboard" -Name "InitialKeyboardIndicators" -Value 2 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Show Hidden Files'].Checked) {
+                Update-Progress "Showing hidden files..."
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Value 1 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Show File Extensions'].Checked) {
+                Update-Progress "Showing file extensions..."
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Value 0 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Disable Sticky Keys'].Checked) {
+                Update-Progress "Disabling sticky keys..."
+                Set-ItemProperty -Path "HKCU:\Control Panel\Accessibility\StickyKeys" -Name "Flags" -Value 506 -ErrorAction SilentlyContinue
+                Set-ItemProperty -Path "HKCU:\Control Panel\Accessibility\Keyboard Response" -Name "Flags" -Value 122 -ErrorAction SilentlyContinue
+                Set-ItemProperty -Path "HKCU:\Control Panel\Accessibility\ToggleKeys" -Name "Flags" -Value 58 -ErrorAction SilentlyContinue
+            }
             if ($chks['Remove Bloatware Apps'].Checked) {
                 Update-Progress "Removing bloatware..."
-                $bloat = @("Microsoft.BingNews", "Microsoft.GetHelp", "Microsoft.Getstarted", "Microsoft.MicrosoftSolitaireCollection", "Microsoft.XboxGamingOverlay", "Microsoft.ZuneMusic")
+                $bloat = @("Microsoft.BingNews", "Microsoft.GetHelp", "Microsoft.Getstarted", "Microsoft.MicrosoftSolitaireCollection", "Microsoft.XboxGamingOverlay", "Microsoft.ZuneMusic", "Microsoft.ZuneVideo", "Microsoft.People", "Microsoft.WindowsFeedbackHub", "Microsoft.YourPhone", "Microsoft.MixedReality.Portal")
                 foreach ($app in $bloat) {
                     Get-AppxPackage -Name $app -AllUsers | Remove-AppxPackage -ErrorAction SilentlyContinue
                 }
+            }
+            if ($chks['Snap Window'].Checked) {
+                Update-Progress "Enabling snap window..."
+                Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "WindowArrangementActive" -Value 1 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Snap Assist Flyout'].Checked) {
+                Update-Progress "Enabling snap assist flyout..."
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SnapAssist" -Value 1 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Disable Bing Search in Start Menu'].Checked) {
+                Update-Progress "Disabling Bing search..."
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Value 0 -ErrorAction SilentlyContinue
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Value 0 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Task View Button in Taskbar'].Checked) {
+                Update-Progress "Showing task view button..."
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Value 1 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Search Button in Taskbar'].Checked) {
+                Update-Progress "Showing search button..."
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 1 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Widgets Button in Taskbar'].Checked) {
+                Update-Progress "Showing widgets button..."
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa" -Value 1 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Verbose Messages During Logon'].Checked) {
+                Update-Progress "Enabling verbose logon..."
+                Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -Value 1 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Detailed BSoD'].Checked) {
+                Update-Progress "Enabling detailed BSoD..."
+                Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl" -Name "DisplayParameters" -Value 1 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Disable Advertising ID'].Checked) {
+                Update-Progress "Disabling advertising ID..."
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name "Enabled" -Value 0 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Disable Feedback Requests'].Checked) {
+                Update-Progress "Disabling feedback..."
+                Set-ItemProperty -Path "HKCU:\Software\Microsoft\Siuf\Rules" -Name "NumberOfSIUFInPeriod" -Value 0 -ErrorAction SilentlyContinue
             }
             if ($chks['Configure Windows Update Hours'].Checked) {
                 Update-Progress "Configuring updates..."
                 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings" -Name "ActiveHoursStart" -Value 8 -ErrorAction SilentlyContinue
                 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings" -Name "ActiveHoursEnd" -Value 2 -ErrorAction SilentlyContinue
+            }
+            if ($chks['Multiplane Overlay'].Checked) {
+                Update-Progress "Enabling multiplane overlay..."
+                Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode" -Value 5 -ErrorAction SilentlyContinue
             }
             
             $progressBar.Value = 100
