@@ -9,14 +9,14 @@ $form.Size = New-Object System.Drawing.Size(1200, 900)
 $form.StartPosition = 'CenterScreen'
 $form.FormBorderStyle = 'FixedDialog'
 $form.MaximizeBox = $false
-$form.BackColor = [System.Drawing.Color]::FromArgb(30, 30, 30)
+$form.BackColor = [System.Drawing.Color]::FromArgb(10, 10, 10)
 
 $titleLabel = New-Object System.Windows.Forms.Label
 $titleLabel.Location = New-Object System.Drawing.Point(20, 20)
 $titleLabel.Size = New-Object System.Drawing.Size(1150, 40)
 $titleLabel.Text = 'CHARGIETWEAKS - WINDOWS GAMING OPTIMIZER'
 $titleLabel.Font = New-Object System.Drawing.Font('Segoe UI', 16, [System.Drawing.FontStyle]::Bold)
-$titleLabel.ForeColor = [System.Drawing.Color]::FromArgb(0, 150, 255)
+$titleLabel.ForeColor = [System.Drawing.Color]::FromArgb(220, 50, 50)
 $titleLabel.TextAlign = 'MiddleCenter'
 $form.Controls.Add($titleLabel)
 
@@ -29,7 +29,7 @@ $form.Controls.Add($tabControl)
 # TWEAKS TAB
 $tabTweaks = New-Object System.Windows.Forms.TabPage
 $tabTweaks.Text = 'Tweaks'
-$tabTweaks.BackColor = [System.Drawing.Color]::FromArgb(40, 40, 40)
+$tabTweaks.BackColor = [System.Drawing.Color]::FromArgb(15, 15, 15)
 $tabControl.TabPages.Add($tabTweaks)
 
 # Top buttons
@@ -37,27 +37,114 @@ $btnStandard = New-Object System.Windows.Forms.Button
 $btnStandard.Location = New-Object System.Drawing.Point(20, 20)
 $btnStandard.Size = New-Object System.Drawing.Size(200, 35)
 $btnStandard.Text = 'Standard'
-$btnStandard.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 60)
+$btnStandard.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
 $btnStandard.ForeColor = [System.Drawing.Color]::White
 $btnStandard.FlatStyle = 'Flat'
+$btnStandard.Add_Click({
+    # Essential Tweaks - Standard Selection
+    $chks['Create Restore Point'].Checked = $true
+    $chks['Delete Temporary Files'].Checked = $true
+    $chks['Disable Telemetry'].Checked = $true
+    $chks['Disable GameDVR'].Checked = $true
+    $chks['Disable Hibernation'].Checked = $false
+    $chks['Optimize Mouse (No Acceleration)'].Checked = $true
+    $chks['Optimize Keyboard'].Checked = $true
+    $chks['High Performance Power Plan'].Checked = $true
+    $chks['Disable Unnecessary Services'].Checked = $true
+    $chks['Optimize Visual Effects'].Checked = $true
+    $chks['Enable GPU Scheduling'].Checked = $true
+    $chks['Disable Fullscreen Optimizations'].Checked = $true
+    $chks['Optimize Network Settings'].Checked = $true
+    $chks['Increase DNS Cache'].Checked = $true
+    $chks['Disable Activity History'].Checked = $true
+    $chks['Disable Location Tracking'].Checked = $true
+    $chks['Disable Storage Sense'].Checked = $true
+    $chks['Run Disk Cleanup'].Checked = $true
+    
+    # Customize Preferences - Standard Selection
+    $chks['Dark Theme for Windows'].Checked = $true
+    $chks['NumLock on Startup'].Checked = $false
+    $chks['Show Hidden Files'].Checked = $false
+    $chks['Show File Extensions'].Checked = $false
+    $chks['Disable Sticky Keys'].Checked = $false
+    $chks['Remove Bloatware Apps'].Checked = $false
+    $chks['Snap Window'].Checked = $false
+    $chks['Snap Assist Flyout'].Checked = $true
+    $chks['Disable Bing Search in Start Menu'].Checked = $true
+    $chks['Task View Button in Taskbar'].Checked = $true
+    $chks['Search Button in Taskbar'].Checked = $true
+    $chks['Widgets Button in Taskbar'].Checked = $true
+    $chks['Verbose Messages During Logon'].Checked = $false
+    $chks['Detailed BSoD'].Checked = $false
+    $chks['Disable Advertising ID'].Checked = $true
+    $chks['Disable Feedback Requests'].Checked = $true
+    $chks['Configure Windows Update Hours'].Checked = $true
+    $chks['Multiplane Overlay'].Checked = $true
+})
 $tabTweaks.Controls.Add($btnStandard)
 
 $btnMinimal = New-Object System.Windows.Forms.Button
 $btnMinimal.Location = New-Object System.Drawing.Point(230, 20)
 $btnMinimal.Size = New-Object System.Drawing.Size(200, 35)
 $btnMinimal.Text = 'Minimal'
-$btnMinimal.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 60)
+$btnMinimal.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
 $btnMinimal.ForeColor = [System.Drawing.Color]::White
 $btnMinimal.FlatStyle = 'Flat'
+$btnMinimal.Add_Click({
+    # Essential Tweaks - Minimal Selection (Only the safest)
+    $chks['Create Restore Point'].Checked = $true
+    $chks['Delete Temporary Files'].Checked = $true
+    $chks['Disable Telemetry'].Checked = $true
+    $chks['Disable GameDVR'].Checked = $true
+    $chks['Disable Hibernation'].Checked = $false
+    $chks['Optimize Mouse (No Acceleration)'].Checked = $true
+    $chks['Optimize Keyboard'].Checked = $true
+    $chks['High Performance Power Plan'].Checked = $true
+    $chks['Disable Unnecessary Services'].Checked = $false
+    $chks['Optimize Visual Effects'].Checked = $false
+    $chks['Enable GPU Scheduling'].Checked = $true
+    $chks['Disable Fullscreen Optimizations'].Checked = $true
+    $chks['Optimize Network Settings'].Checked = $true
+    $chks['Increase DNS Cache'].Checked = $false
+    $chks['Disable Activity History'].Checked = $false
+    $chks['Disable Location Tracking'].Checked = $false
+    $chks['Disable Storage Sense'].Checked = $false
+    $chks['Run Disk Cleanup'].Checked = $false
+    
+    # Customize Preferences - Minimal Selection
+    $chks['Dark Theme for Windows'].Checked = $false
+    $chks['NumLock on Startup'].Checked = $false
+    $chks['Show Hidden Files'].Checked = $false
+    $chks['Show File Extensions'].Checked = $false
+    $chks['Disable Sticky Keys'].Checked = $false
+    $chks['Remove Bloatware Apps'].Checked = $false
+    $chks['Snap Window'].Checked = $false
+    $chks['Snap Assist Flyout'].Checked = $false
+    $chks['Disable Bing Search in Start Menu'].Checked = $false
+    $chks['Task View Button in Taskbar'].Checked = $false
+    $chks['Search Button in Taskbar'].Checked = $false
+    $chks['Widgets Button in Taskbar'].Checked = $false
+    $chks['Verbose Messages During Logon'].Checked = $false
+    $chks['Detailed BSoD'].Checked = $false
+    $chks['Disable Advertising ID'].Checked = $false
+    $chks['Disable Feedback Requests'].Checked = $false
+    $chks['Configure Windows Update Hours'].Checked = $true
+    $chks['Multiplane Overlay'].Checked = $false
+})
 $tabTweaks.Controls.Add($btnMinimal)
 
 $btnClear = New-Object System.Windows.Forms.Button
 $btnClear.Location = New-Object System.Drawing.Point(440, 20)
 $btnClear.Size = New-Object System.Drawing.Size(200, 35)
 $btnClear.Text = 'Clear'
-$btnClear.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 60)
+$btnClear.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
 $btnClear.ForeColor = [System.Drawing.Color]::White
 $btnClear.FlatStyle = 'Flat'
+$btnClear.Add_Click({
+    foreach ($chk in $chks.Values) {
+        $chk.Checked = $false
+    }
+})
 $tabTweaks.Controls.Add($btnClear)
 
 $chks = @{}
@@ -68,7 +155,7 @@ $lblEssential.Location = New-Object System.Drawing.Point(20, 70)
 $lblEssential.Size = New-Object System.Drawing.Size(500, 30)
 $lblEssential.Text = 'Essential Tweaks'
 $lblEssential.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
-$lblEssential.ForeColor = [System.Drawing.Color]::FromArgb(0, 150, 255)
+$lblEssential.ForeColor = [System.Drawing.Color]::FromArgb(220, 50, 50)
 $tabTweaks.Controls.Add($lblEssential)
 
 $yPos = 105
@@ -111,7 +198,7 @@ $lblCustomize.Location = New-Object System.Drawing.Point(600, 70)
 $lblCustomize.Size = New-Object System.Drawing.Size(500, 30)
 $lblCustomize.Text = 'Customize Preferences'
 $lblCustomize.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
-$lblCustomize.ForeColor = [System.Drawing.Color]::FromArgb(0, 150, 255)
+$lblCustomize.ForeColor = [System.Drawing.Color]::FromArgb(220, 50, 50)
 $tabTweaks.Controls.Add($lblCustomize)
 
 $yPos = 105
@@ -153,7 +240,7 @@ $btnRunTweaks.Location = New-Object System.Drawing.Point(30, 600)
 $btnRunTweaks.Size = New-Object System.Drawing.Size(250, 40)
 $btnRunTweaks.Text = 'Run Tweaks'
 $btnRunTweaks.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
-$btnRunTweaks.BackColor = [System.Drawing.Color]::FromArgb(0, 150, 255)
+$btnRunTweaks.BackColor = [System.Drawing.Color]::FromArgb(180, 30, 30)
 $btnRunTweaks.ForeColor = [System.Drawing.Color]::White
 $btnRunTweaks.FlatStyle = 'Flat'
 $tabTweaks.Controls.Add($btnRunTweaks)
@@ -161,7 +248,7 @@ $tabTweaks.Controls.Add($btnRunTweaks)
 # CONFIG TAB
 $tabConfig = New-Object System.Windows.Forms.TabPage
 $tabConfig.Text = 'Config'
-$tabConfig.BackColor = [System.Drawing.Color]::FromArgb(40, 40, 40)
+$tabConfig.BackColor = [System.Drawing.Color]::FromArgb(15, 15, 15)
 $tabControl.TabPages.Add($tabConfig)
 
 $lblPanels = New-Object System.Windows.Forms.Label
@@ -169,7 +256,7 @@ $lblPanels.Location = New-Object System.Drawing.Point(20, 20)
 $lblPanels.Size = New-Object System.Drawing.Size(400, 30)
 $lblPanels.Text = 'Legacy Windows Panels'
 $lblPanels.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
-$lblPanels.ForeColor = [System.Drawing.Color]::FromArgb(0, 150, 255)
+$lblPanels.ForeColor = [System.Drawing.Color]::FromArgb(220, 50, 50)
 $tabConfig.Controls.Add($lblPanels)
 
 $yPos = 60
@@ -180,7 +267,7 @@ foreach ($panel in $panels) {
     $btn.Location = New-Object System.Drawing.Point(30, $yPos)
     $btn.Size = New-Object System.Drawing.Size(480, 35)
     $btn.Text = $panel
-    $btn.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 60)
+    $btn.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
     $btn.ForeColor = [System.Drawing.Color]::White
     $btn.FlatStyle = 'Flat'
     $tabConfig.Controls.Add($btn)
@@ -192,7 +279,7 @@ $lblFixes.Location = New-Object System.Drawing.Point(600, 20)
 $lblFixes.Size = New-Object System.Drawing.Size(300, 30)
 $lblFixes.Text = 'Fixes'
 $lblFixes.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
-$lblFixes.ForeColor = [System.Drawing.Color]::FromArgb(0, 150, 255)
+$lblFixes.ForeColor = [System.Drawing.Color]::FromArgb(220, 50, 50)
 $tabConfig.Controls.Add($lblFixes)
 
 $yPos = 60
@@ -203,7 +290,7 @@ foreach ($fix in $fixes) {
     $btn.Location = New-Object System.Drawing.Point(610, $yPos)
     $btn.Size = New-Object System.Drawing.Size(480, 35)
     $btn.Text = $fix
-    $btn.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 60)
+    $btn.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
     $btn.ForeColor = [System.Drawing.Color]::White
     $btn.FlatStyle = 'Flat'
     $tabConfig.Controls.Add($btn)
@@ -213,7 +300,7 @@ foreach ($fix in $fixes) {
 # SERVICES TAB
 $tabServices = New-Object System.Windows.Forms.TabPage
 $tabServices.Text = 'Services'
-$tabServices.BackColor = [System.Drawing.Color]::FromArgb(40, 40, 40)
+$tabServices.BackColor = [System.Drawing.Color]::FromArgb(15, 15, 15)
 $tabControl.TabPages.Add($tabServices)
 
 $lblServices = New-Object System.Windows.Forms.Label
@@ -221,7 +308,7 @@ $lblServices.Location = New-Object System.Drawing.Point(20, 20)
 $lblServices.Size = New-Object System.Drawing.Size(1100, 30)
 $lblServices.Text = 'Services to Disable (Select and click "Disable Selected Services")'
 $lblServices.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
-$lblServices.ForeColor = [System.Drawing.Color]::FromArgb(0, 150, 255)
+$lblServices.ForeColor = [System.Drawing.Color]::FromArgb(220, 50, 50)
 $tabServices.Controls.Add($lblServices)
 
 $serviceChks = @{}
@@ -279,7 +366,7 @@ $btnDisableServices.Location = New-Object System.Drawing.Point(30, 600)
 $btnDisableServices.Size = New-Object System.Drawing.Size(300, 40)
 $btnDisableServices.Text = 'Disable Selected Services'
 $btnDisableServices.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
-$btnDisableServices.BackColor = [System.Drawing.Color]::FromArgb(180, 50, 50)
+$btnDisableServices.BackColor = [System.Drawing.Color]::FromArgb(150, 20, 20)
 $btnDisableServices.ForeColor = [System.Drawing.Color]::White
 $btnDisableServices.FlatStyle = 'Flat'
 $btnDisableServices.Add_Click({
@@ -305,7 +392,7 @@ $btnSelectAllServices.Location = New-Object System.Drawing.Point(350, 600)
 $btnSelectAllServices.Size = New-Object System.Drawing.Size(200, 40)
 $btnSelectAllServices.Text = 'Select All'
 $btnSelectAllServices.Font = New-Object System.Drawing.Font('Segoe UI', 10)
-$btnSelectAllServices.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 60)
+$btnSelectAllServices.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
 $btnSelectAllServices.ForeColor = [System.Drawing.Color]::White
 $btnSelectAllServices.FlatStyle = 'Flat'
 $btnSelectAllServices.Add_Click({ foreach ($chk in $serviceChks.Values) { $chk.Checked = $true } })
@@ -316,7 +403,7 @@ $btnDeselectAllServices.Location = New-Object System.Drawing.Point(560, 600)
 $btnDeselectAllServices.Size = New-Object System.Drawing.Size(200, 40)
 $btnDeselectAllServices.Text = 'Deselect All'
 $btnDeselectAllServices.Font = New-Object System.Drawing.Font('Segoe UI', 10)
-$btnDeselectAllServices.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 60)
+$btnDeselectAllServices.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
 $btnDeselectAllServices.ForeColor = [System.Drawing.Color]::White
 $btnDeselectAllServices.FlatStyle = 'Flat'
 $btnDeselectAllServices.Add_Click({ foreach ($chk in $serviceChks.Values) { $chk.Checked = $false } })
@@ -328,7 +415,7 @@ $btnSelectAll.Location = New-Object System.Drawing.Point(300, 760)
 $btnSelectAll.Size = New-Object System.Drawing.Size(200, 45)
 $btnSelectAll.Text = 'Select All'
 $btnSelectAll.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
-$btnSelectAll.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 60)
+$btnSelectAll.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
 $btnSelectAll.ForeColor = [System.Drawing.Color]::White
 $btnSelectAll.FlatStyle = 'Flat'
 $btnSelectAll.Add_Click({ foreach ($chk in $chks.Values) { $chk.Checked = $true } })
@@ -339,7 +426,7 @@ $btnDeselectAll.Location = New-Object System.Drawing.Point(520, 760)
 $btnDeselectAll.Size = New-Object System.Drawing.Size(200, 45)
 $btnDeselectAll.Text = 'Deselect All'
 $btnDeselectAll.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
-$btnDeselectAll.BackColor = [System.Drawing.Color]::FromArgb(60, 60, 60)
+$btnDeselectAll.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
 $btnDeselectAll.ForeColor = [System.Drawing.Color]::White
 $btnDeselectAll.FlatStyle = 'Flat'
 $btnDeselectAll.Add_Click({ foreach ($chk in $chks.Values) { $chk.Checked = $false } })
@@ -350,7 +437,7 @@ $btnApply.Location = New-Object System.Drawing.Point(740, 760)
 $btnApply.Size = New-Object System.Drawing.Size(250, 45)
 $btnApply.Text = 'APPLY'
 $btnApply.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
-$btnApply.BackColor = [System.Drawing.Color]::FromArgb(0, 150, 255)
+$btnApply.BackColor = [System.Drawing.Color]::FromArgb(180, 30, 30)
 $btnApply.ForeColor = [System.Drawing.Color]::White
 $btnApply.FlatStyle = 'Flat'
 $btnApply.Add_Click({
@@ -361,7 +448,7 @@ $btnApply.Add_Click({
         $progressForm.Text = 'Optimizing...'
         $progressForm.Size = New-Object System.Drawing.Size(700, 400)
         $progressForm.StartPosition = 'CenterScreen'
-        $progressForm.BackColor = [System.Drawing.Color]::FromArgb(30, 30, 30)
+        $progressForm.BackColor = [System.Drawing.Color]::FromArgb(10, 10, 10)
         
         $progressLabel = New-Object System.Windows.Forms.Label
         $progressLabel.Location = New-Object System.Drawing.Point(20, 20)
