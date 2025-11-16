@@ -235,18 +235,6 @@ foreach ($tweak in $customizeTweaks) {
     $yPos += 28
 }
 
-$btnRunTweaks = New-Object System.Windows.Forms.Button
-$btnRunTweaks.Location = New-Object System.Drawing.Point(610, 602)
-$btnRunTweaks.Size = New-Object System.Drawing.Size(236, 36)
-$btnRunTweaks.Text = 'Run Tweaks'
-$btnRunTweaks.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
-$btnRunTweaks.BackColor = [System.Drawing.Color]::FromArgb(180, 30, 30)
-$btnRunTweaks.ForeColor = [System.Drawing.Color]::White
-$btnRunTweaks.FlatStyle = 'Flat'
-$btnRunTweaks.FlatAppearance.BorderColor = [System.Drawing.Color]::White
-$btnRunTweaks.FlatAppearance.BorderSize = 2
-$tabTweaks.Controls.Add($btnRunTweaks)
-
 # CONFIG TAB
 $tabConfig = New-Object System.Windows.Forms.TabPage
 $tabConfig.Text = 'Config'
@@ -1078,5 +1066,19 @@ $btnApply.Add_Click({
     }
 })
 $form.Controls.Add($btnApply)
+
+# Add Run Tweaks button functionality AFTER $btnApply is created
+$btnRunTweaks = New-Object System.Windows.Forms.Button
+$btnRunTweaks.Location = New-Object System.Drawing.Point(610, 602)
+$btnRunTweaks.Size = New-Object System.Drawing.Size(236, 36)
+$btnRunTweaks.Text = 'Run Tweaks'
+$btnRunTweaks.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
+$btnRunTweaks.BackColor = [System.Drawing.Color]::FromArgb(180, 30, 30)
+$btnRunTweaks.ForeColor = [System.Drawing.Color]::White
+$btnRunTweaks.FlatStyle = 'Flat'
+$btnRunTweaks.FlatAppearance.BorderColor = [System.Drawing.Color]::White
+$btnRunTweaks.FlatAppearance.BorderSize = 2
+$btnRunTweaks.Add_Click({ $btnApply.PerformClick() })
+$tabTweaks.Controls.Add($btnRunTweaks)
 
 [void]$form.ShowDialog()
