@@ -471,6 +471,9 @@ $performanceTweaks = @(
     @{Name='Optimize Network Adapter Power Settings'; Safe=$true},
     @{Name='Disable Windows Search Indexing'; Safe=$true},
     @{Name='Set Page File to System Managed'; Safe=$true},
+    @{Name='Disable Power Throttling'; Safe=$true},
+    @{Name='Disable VBS (Virtualization Based Security)'; Safe=$true},
+    @{Name='Disable Spectre/Meltdown Mitigations'; Safe=$false},
     @{Name='Disable Processor Idle States (Max CPU)'; Safe=$false},
     @{Name='Disable C-States (Prevents CPU Sleep)'; Safe=$false}
 )
@@ -495,7 +498,7 @@ foreach ($tweak in $performanceTweaks) {
     $yPos += 28
     $columnCount++
     
-    if ($columnCount -eq 9) {
+    if ($columnCount -eq 10) {
         $xPos = 580
         $yPos = 60
     }
@@ -504,7 +507,7 @@ foreach ($tweak in $performanceTweaks) {
 $lblWarning = New-Object System.Windows.Forms.Label
 $lblWarning.Location = New-Object System.Drawing.Point(30, 570)
 $lblWarning.Size = New-Object System.Drawing.Size(1080, 20)
-$lblWarning.Text = '⚠️ Green = Safe for all systems | Orange = Advanced (May increase power consumption or heat)'
+$lblWarning.Text = '⚠️ Green = Safe for all systems | Orange = Advanced (May increase power/heat or reduce security)'
 $lblWarning.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Italic)
 $lblWarning.ForeColor = [System.Drawing.Color]::Yellow
 $tabPerformance.Controls.Add($lblWarning)
@@ -615,6 +618,25 @@ $btnApplyPerf.Add_Click({
             $count++
         }
         
+        if ($perfChks['Disable Power Throttling'].Checked) {
+            New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" -Name "PowerThrottlingOff" -Value 1 -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($perfChks['Disable VBS (Virtualization Based Security)'].Checked) {
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard" -Name "EnableVirtualizationBasedSecurity" -Value 0 -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard" -Name "RequirePlatformSecurityFeatures" -Value 0 -ErrorAction SilentlyContinue
+            bcdedit /set hypervisorlaunchtype off
+            $count++
+        }
+        
+        if ($perfChks['Disable Spectre/Meltdown Mitigations'].Checked) {
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "FeatureSettingsOverride" -Value 3 -Type DWord -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "FeatureSettingsOverrideMask" -Value 3 -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
         if ($perfChks['Disable Processor Idle States (Max CPU)'].Checked) {
             powercfg -setacvalueindex SCHEME_CURRENT SUB_PROCESSOR IDLEDISABLE 1
             $count++
@@ -663,7 +685,421 @@ $btnDeselectAllPerf.FlatStyle = 'Flat'
 $btnDeselectAllPerf.Add_Click({ foreach ($chk in $perfChks.Values) { $chk.Checked = $false } })
 $tabPerformance.Controls.Add($btnDeselectAllPerf)
 
-# PROCESSES TAB (NEW!)
+# NETWORK TAB (NEW!)
+$tabNetwork = New-Object System.Windows.Forms.TabPage
+$tabNetwork.Text = 'Network'
+$tabNetwork.BackColor = [System.Drawing.Color]::FromArgb(15, 15, 15)
+$tabControl.TabPages.Add($tabNetwork)
+
+$lblNetworkInfo = New-Object System.Windows.Forms.Label
+$lblNetworkInfo.Location = New-Object System.Drawing.Point(20, 20)
+$lblNetworkInfo.Size = New-Object System.Drawing.Size(1100, 30)
+$lblNetworkInfo.Text = 'Advanced Network Optimization - Reduce Latency & Improve Gaming Performance'
+$lblNetworkInfo.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
+$lblNetworkInfo.ForeColor = [System.Drawing.Color]::FromArgb(220, 50, 50)
+$tabNetwork.Controls.Add($lblNetworkInfo)
+
+$networkChks = @{}
+$yPos = 60
+$xPos = 30
+
+$networkTweaks = @(
+    @{Name='Disable Network Throttling Index'; Safe=$true},
+    @{Name='Enable TCPNoDelay (Reduce Latency)'; Safe=$true},
+    @{Name='Set TCP Acknowledgment Frequency to 1'; Safe=$true},
+    @{Name='Disable Nagle Algorithm (Lower Ping)'; Safe=$true},
+    @{Name='Increase Network TTL (Time To Live)'; Safe=$true},
+    @{Name='Optimize MTU Size (Maximum Transmission Unit)'; Safe=$true},
+    @{Name='Disable Large Send Offload (LSO)'; Safe=$true},
+    @{Name='Disable TCP Chimney Offload'; Safe=$true},
+    @{Name='Set Network Adapter to Maximum Performance'; Safe=$true},
+    @{Name='Disable Windows Auto-Tuning'; Safe=$false},
+    @{Name='Increase Network Buffer Sizes'; Safe=$true},
+    @{Name='Optimize Receive Side Scaling (RSS)'; Safe=$true},
+    @{Name='Disable Interrupt Moderation'; Safe=$false},
+    @{Name='Set DNS to Cloudflare (1.1.1.1)'; Safe=$true},
+    @{Name='Disable IPv6 (If Not Used)'; Safe=$true},
+    @{Name='Prioritize Network Packets (QoS)'; Safe=$true},
+    @{Name='Disable Windows Network Limiter'; Safe=$true},
+    @{Name='Optimize Ethernet Flow Control'; Safe=$true}
+)
+
+$columnCount = 0
+foreach ($tweak in $networkTweaks) {
+    $chk = New-Object System.Windows.Forms.CheckBox
+    $chk.Location = New-Object System.Drawing.Point($xPos, $yPos)
+    $chk.Size = New-Object System.Drawing.Size(540, 25)
+    $chk.Text = $tweak.Name
+    if ($tweak.Safe) {
+        $chk.ForeColor = [System.Drawing.Color]::LimeGreen
+        $chk.Checked = $true
+    } else {
+        $chk.ForeColor = [System.Drawing.Color]::Orange
+        $chk.Checked = $false
+    }
+    $chk.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+    $tabNetwork.Controls.Add($chk)
+    $networkChks[$tweak.Name] = $chk
+    
+    $yPos += 28
+    $columnCount++
+    
+    if ($columnCount -eq 9) {
+        $xPos = 580
+        $yPos = 60
+    }
+}
+
+$lblNetWarning = New-Object System.Windows.Forms.Label
+$lblNetWarning.Location = New-Object System.Drawing.Point(30, 570)
+$lblNetWarning.Size = New-Object System.Drawing.Size(1080, 20)
+$lblNetWarning.Text = '⚠️ Green = Safe optimizations | Orange = May affect some network features'
+$lblNetWarning.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Italic)
+$lblNetWarning.ForeColor = [System.Drawing.Color]::Yellow
+$tabNetwork.Controls.Add($lblNetWarning)
+
+$btnApplyNetwork = New-Object System.Windows.Forms.Button
+$btnApplyNetwork.Location = New-Object System.Drawing.Point(30, 600)
+$btnApplyNetwork.Size = New-Object System.Drawing.Size(300, 40)
+$btnApplyNetwork.Text = 'Apply Network Tweaks'
+$btnApplyNetwork.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
+$btnApplyNetwork.BackColor = [System.Drawing.Color]::FromArgb(150, 20, 20)
+$btnApplyNetwork.ForeColor = [System.Drawing.Color]::White
+$btnApplyNetwork.FlatStyle = 'Flat'
+$btnApplyNetwork.Add_Click({
+    $result = [System.Windows.Forms.MessageBox]::Show("Apply network optimizations?`n`nThis will optimize your network for gaming.", "Confirm", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question)
+    if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+        $count = 0
+        
+        if ($networkChks['Disable Network Throttling Index'].Checked) {
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "NetworkThrottlingIndex" -Value 0xffffffff -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($networkChks['Enable TCPNoDelay (Reduce Latency)'].Checked) {
+            $adapters = Get-NetAdapter | Where-Object {$_.Status -eq "Up"}
+            foreach ($adapter in $adapters) {
+                $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\$($adapter.InterfaceGuid)"
+                if (Test-Path $regPath) {
+                    Set-ItemProperty -Path $regPath -Name "TCPNoDelay" -Value 1 -Type DWord -ErrorAction SilentlyContinue
+                }
+            }
+            $count++
+        }
+        
+        if ($networkChks['Set TCP Acknowledgment Frequency to 1'].Checked) {
+            $adapters = Get-NetAdapter | Where-Object {$_.Status -eq "Up"}
+            foreach ($adapter in $adapters) {
+                $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\$($adapter.InterfaceGuid)"
+                if (Test-Path $regPath) {
+                    Set-ItemProperty -Path $regPath -Name "TcpAckFrequency" -Value 1 -Type DWord -ErrorAction SilentlyContinue
+                }
+            }
+            $count++
+        }
+        
+        if ($networkChks['Disable Nagle Algorithm (Lower Ping)'].Checked) {
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -Name "TcpNoDelay" -Value 1 -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($networkChks['Increase Network TTL (Time To Live)'].Checked) {
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -Name "DefaultTTL" -Value 64 -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($networkChks['Optimize MTU Size (Maximum Transmission Unit)'].Checked) {
+            $adapters = Get-NetAdapter | Where-Object {$_.Status -eq "Up"}
+            foreach ($adapter in $adapters) {
+                netsh interface ipv4 set subinterface $adapter.InterfaceIndex mtu=1500 store=persistent
+            }
+            $count++
+        }
+        
+        if ($networkChks['Disable Large Send Offload (LSO)'].Checked) {
+            $adapters = Get-NetAdapter | Where-Object {$_.Status -eq "Up"}
+            foreach ($adapter in $adapters) {
+                Set-NetAdapterLso -Name $adapter.Name -IPv4Enabled $false -IPv6Enabled $false -ErrorAction SilentlyContinue
+            }
+            $count++
+        }
+        
+        if ($networkChks['Disable TCP Chimney Offload'].Checked) {
+            netsh int tcp set global chimney=disabled
+            $count++
+        }
+        
+        if ($networkChks['Set Network Adapter to Maximum Performance'].Checked) {
+            $adapters = Get-NetAdapter | Where-Object {$_.Status -eq "Up"}
+            foreach ($adapter in $adapters) {
+                Set-NetAdapterAdvancedProperty -Name $adapter.Name -DisplayName "Energy Efficient Ethernet" -DisplayValue "Disabled" -ErrorAction SilentlyContinue
+                Set-NetAdapterAdvancedProperty -Name $adapter.Name -DisplayName "Green Ethernet" -DisplayValue "Disabled" -ErrorAction SilentlyContinue
+                Set-NetAdapterAdvancedProperty -Name $adapter.Name -DisplayName "Power Saving Mode" -DisplayValue "Disabled" -ErrorAction SilentlyContinue
+            }
+            $count++
+        }
+        
+        if ($networkChks['Disable Windows Auto-Tuning'].Checked) {
+            netsh int tcp set global autotuninglevel=disabled
+            $count++
+        }
+        
+        if ($networkChks['Increase Network Buffer Sizes'].Checked) {
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -Name "TcpWindowSize" -Value 65535 -Type DWord -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -Name "Tcp1323Opts" -Value 3 -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($networkChks['Optimize Receive Side Scaling (RSS)'].Checked) {
+            $adapters = Get-NetAdapter | Where-Object {$_.Status -eq "Up"}
+            foreach ($adapter in $adapters) {
+                Enable-NetAdapterRss -Name $adapter.Name -ErrorAction SilentlyContinue
+            }
+            $count++
+        }
+        
+        if ($networkChks['Disable Interrupt Moderation'].Checked) {
+            $adapters = Get-NetAdapter | Where-Object {$_.Status -eq "Up"}
+            foreach ($adapter in $adapters) {
+                Set-NetAdapterAdvancedProperty -Name $adapter.Name -DisplayName "Interrupt Moderation" -DisplayValue "Disabled" -ErrorAction SilentlyContinue
+            }
+            $count++
+        }
+        
+        if ($networkChks['Set DNS to Cloudflare (1.1.1.1)'].Checked) {
+            $adapters = Get-NetAdapter | Where-Object {$_.Status -eq "Up"}
+            foreach ($adapter in $adapters) {
+                Set-DnsClientServerAddress -InterfaceIndex $adapter.InterfaceIndex -ServerAddresses ("1.1.1.1","1.0.0.1") -ErrorAction SilentlyContinue
+            }
+            $count++
+        }
+        
+        if ($networkChks['Disable IPv6 (If Not Used)'].Checked) {
+            $adapters = Get-NetAdapter | Where-Object {$_.Status -eq "Up"}
+            foreach ($adapter in $adapters) {
+                Disable-NetAdapterBinding -Name $adapter.Name -ComponentID ms_tcpip6 -ErrorAction SilentlyContinue
+            }
+            $count++
+        }
+        
+        if ($networkChks['Prioritize Network Packets (QoS)'].Checked) {
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Psched" -Name "NonBestEffortLimit" -Value 0 -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($networkChks['Disable Windows Network Limiter'].Checked) {
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "NetworkThrottlingIndex" -Value 0xffffffff -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($networkChks['Optimize Ethernet Flow Control'].Checked) {
+            $adapters = Get-NetAdapter | Where-Object {$_.Status -eq "Up"}
+            foreach ($adapter in $adapters) {
+                Set-NetAdapterAdvancedProperty -Name $adapter.Name -DisplayName "Flow Control" -DisplayValue "Disabled" -ErrorAction SilentlyContinue
+            }
+            $count++
+        }
+        
+        [System.Windows.Forms.MessageBox]::Show("Applied $count network optimizations!`n`nRestart recommended for all changes to take effect.", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }
+})
+$tabNetwork.Controls.Add($btnApplyNetwork)
+
+$btnSelectAllNetwork = New-Object System.Windows.Forms.Button
+$btnSelectAllNetwork.Location = New-Object System.Drawing.Point(350, 600)
+$btnSelectAllNetwork.Size = New-Object System.Drawing.Size(200, 40)
+$btnSelectAllNetwork.Text = 'Select Safe Only'
+$btnSelectAllNetwork.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+$btnSelectAllNetwork.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
+$btnSelectAllNetwork.ForeColor = [System.Drawing.Color]::White
+$btnSelectAllNetwork.FlatStyle = 'Flat'
+$btnSelectAllNetwork.Add_Click({
+    foreach ($chk in $networkChks.Values) {
+        if ($chk.ForeColor -eq [System.Drawing.Color]::LimeGreen) {
+            $chk.Checked = $true
+        } else {
+            $chk.Checked = $false
+        }
+    }
+})
+$tabNetwork.Controls.Add($btnSelectAllNetwork)
+
+$btnDeselectAllNetwork = New-Object System.Windows.Forms.Button
+$btnDeselectAllNetwork.Location = New-Object System.Drawing.Point(560, 600)
+$btnDeselectAllNetwork.Size = New-Object System.Drawing.Size(200, 40)
+$btnDeselectAllNetwork.Text = 'Deselect All'
+$btnDeselectAllNetwork.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+$btnDeselectAllNetwork.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
+$btnDeselectAllNetwork.ForeColor = [System.Drawing.Color]::White
+$btnDeselectAllNetwork.FlatStyle = 'Flat'
+$btnDeselectAllNetwork.Add_Click({ foreach ($chk in $networkChks.Values) { $chk.Checked = $false } })
+$tabNetwork.Controls.Add($btnDeselectAllNetwork)
+
+# AUDIO TAB (NEW!)
+$tabAudio = New-Object System.Windows.Forms.TabPage
+$tabAudio.Text = 'Audio'
+$tabAudio.BackColor = [System.Drawing.Color]::FromArgb(15, 15, 15)
+$tabControl.TabPages.Add($tabAudio)
+
+$lblAudioInfo = New-Object System.Windows.Forms.Label
+$lblAudioInfo.Location = New-Object System.Drawing.Point(20, 20)
+$lblAudioInfo.Size = New-Object System.Drawing.Size(1100, 30)
+$lblAudioInfo.Text = 'Audio Latency Reduction & Optimization - Improve Audio Responsiveness'
+$lblAudioInfo.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
+$lblAudioInfo.ForeColor = [System.Drawing.Color]::FromArgb(220, 50, 50)
+$tabAudio.Controls.Add($lblAudioInfo)
+
+$audioChks = @{}
+$yPos = 60
+
+$audioTweaks = @(
+    @{Name='Reduce Audio Buffer Size (Lower Latency)'; Safe=$true},
+    @{Name='Disable Audio Enhancements'; Safe=$true},
+    @{Name='Set Audio to High Performance Mode'; Safe=$true},
+    @{Name='Disable Exclusive Mode for Audio'; Safe=$false},
+    @{Name='Optimize MMCSS (Multimedia Class Scheduler)'; Safe=$true},
+    @{Name='Increase Audio Thread Priority'; Safe=$true},
+    @{Name='Disable Audio Device Sleep Mode'; Safe=$true},
+    @{Name='Set Audio Sample Rate to 48000 Hz'; Safe=$true},
+    @{Name='Disable Windows Audio Effects'; Safe=$true},
+    @{Name='Optimize Audio Service Priority'; Safe=$true}
+)
+
+foreach ($tweak in $audioTweaks) {
+    $chk = New-Object System.Windows.Forms.CheckBox
+    $chk.Location = New-Object System.Drawing.Point(30, $yPos)
+    $chk.Size = New-Object System.Drawing.Size(1080, 25)
+    $chk.Text = $tweak.Name
+    if ($tweak.Safe) {
+        $chk.ForeColor = [System.Drawing.Color]::LimeGreen
+        $chk.Checked = $true
+    } else {
+        $chk.ForeColor = [System.Drawing.Color]::Orange
+        $chk.Checked = $false
+    }
+    $chk.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+    $tabAudio.Controls.Add($chk)
+    $audioChks[$tweak.Name] = $chk
+    $yPos += 28
+}
+
+$lblAudioHelp = New-Object System.Windows.Forms.Label
+$lblAudioHelp.Location = New-Object System.Drawing.Point(30, 400)
+$lblAudioHelp.Size = New-Object System.Drawing.Size(1080, 40)
+$lblAudioHelp.Text = "ℹ️ Audio optimizations reduce latency and improve sound quality in games.`nLower buffer sizes = less latency but may cause crackling on slower systems."
+$lblAudioHelp.Font = New-Object System.Drawing.Font('Segoe UI', 9, [System.Drawing.FontStyle]::Italic)
+$lblAudioHelp.ForeColor = [System.Drawing.Color]::FromArgb(180, 180, 180)
+$tabAudio.Controls.Add($lblAudioHelp)
+
+$btnApplyAudio = New-Object System.Windows.Forms.Button
+$btnApplyAudio.Location = New-Object System.Drawing.Point(30, 600)
+$btnApplyAudio.Size = New-Object System.Drawing.Size(300, 40)
+$btnApplyAudio.Text = 'Apply Audio Tweaks'
+$btnApplyAudio.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
+$btnApplyAudio.BackColor = [System.Drawing.Color]::FromArgb(150, 20, 20)
+$btnApplyAudio.ForeColor = [System.Drawing.Color]::White
+$btnApplyAudio.FlatStyle = 'Flat'
+$btnApplyAudio.Add_Click({
+    $result = [System.Windows.Forms.MessageBox]::Show("Apply audio optimizations?", "Confirm", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question)
+    if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+        $count = 0
+        
+        if ($audioChks['Reduce Audio Buffer Size (Lower Latency)'].Checked) {
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\AudioSrv" -Name "DependOnService" -Value @("AudioEndpointBuilder","RpcSs") -Type MultiString -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "NoLazyMode" -Value 1 -Type DWord -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "AlwaysOn" -Value 1 -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($audioChks['Disable Audio Enhancements'].Checked) {
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Audio" -Name "DisableProtectedAudioDG" -Value 1 -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($audioChks['Set Audio to High Performance Mode'].Checked) {
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio" -Name "Priority" -Value 1 -Type DWord -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio" -Name "Scheduling Category" -Value "High" -Type String -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($audioChks['Disable Exclusive Mode for Audio'].Checked) {
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Audio" -Name "AllowExclusiveMode" -Value 0 -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($audioChks['Optimize MMCSS (Multimedia Class Scheduler)'].Checked) {
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "SystemResponsiveness" -Value 0 -Type DWord -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio" -Name "Affinity" -Value 0 -Type DWord -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio" -Name "Background Only" -Value "False" -Type String -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio" -Name "Clock Rate" -Value 10000 -Type DWord -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio" -Name "GPU Priority" -Value 8 -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($audioChks['Increase Audio Thread Priority'].Checked) {
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Pro Audio" -Name "Priority" -Value 1 -Type DWord -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Pro Audio" -Name "Scheduling Category" -Value "High" -Type String -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($audioChks['Disable Audio Device Sleep Mode'].Checked) {
+            powercfg -setacvalueindex SCHEME_CURRENT SUB_NONE DEVICEIDLE 0
+            powercfg -setactive SCHEME_CURRENT
+            $count++
+        }
+        
+        if ($audioChks['Set Audio Sample Rate to 48000 Hz'].Checked) {
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "SamplingRate" -Value 48000 -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($audioChks['Disable Windows Audio Effects'].Checked) {
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Multimedia\Audio" -Name "UserDuckingPreference" -Value 3 -Type DWord -ErrorAction SilentlyContinue
+            $count++
+        }
+        
+        if ($audioChks['Optimize Audio Service Priority'].Checked) {
+            sc config Audiosrv start= auto
+            sc config AudioEndpointBuilder start= auto
+            $count++
+        }
+        
+        [System.Windows.Forms.MessageBox]::Show("Applied $count audio optimizations!`n`nRestart recommended for all changes to take effect.", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }
+})
+$tabAudio.Controls.Add($btnApplyAudio)
+
+$btnSelectAllAudio = New-Object System.Windows.Forms.Button
+$btnSelectAllAudio.Location = New-Object System.Drawing.Point(350, 600)
+$btnSelectAllAudio.Size = New-Object System.Drawing.Size(200, 40)
+$btnSelectAllAudio.Text = 'Select All Safe'
+$btnSelectAllAudio.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+$btnSelectAllAudio.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
+$btnSelectAllAudio.ForeColor = [System.Drawing.Color]::White
+$btnSelectAllAudio.FlatStyle = 'Flat'
+$btnSelectAllAudio.Add_Click({
+    foreach ($chk in $audioChks.Values) {
+        if ($chk.ForeColor -eq [System.Drawing.Color]::LimeGreen) {
+            $chk.Checked = $true
+        } else {
+            $chk.Checked = $false
+        }
+    }
+})
+$tabAudio.Controls.Add($btnSelectAllAudio)
+
+$btnDeselectAllAudio = New-Object System.Windows.Forms.Button
+$btnDeselectAllAudio.Location = New-Object System.Drawing.Point(560, 600)
+$btnDeselectAllAudio.Size = New-Object System.Drawing.Size(200, 40)
+$btnDeselectAllAudio.Text = 'Deselect All'
+$btnDeselectAllAudio.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+$btnDeselectAllAudio.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
+$btnDeselectAllAudio.ForeColor = [System.Drawing.Color]::White
+$btnDeselectAllAudio.FlatStyle = 'Flat'
+$btnDeselectAllAudio.Add_Click({ foreach ($chk in $audioChks.Values) { $chk.Checked = $false } })
+$tabAudio.Controls.Add($btnDeselectAllAudio)
+
+# PROCESSES TAB
 $tabProcesses = New-Object System.Windows.Forms.TabPage
 $tabProcesses.Text = 'Processes'
 $tabProcesses.BackColor = [System.Drawing.Color]::FromArgb(15, 15, 15)
