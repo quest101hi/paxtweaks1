@@ -237,12 +237,14 @@ foreach ($tweak in $customizeTweaks) {
 
 $btnRunTweaks = New-Object System.Windows.Forms.Button
 $btnRunTweaks.Location = New-Object System.Drawing.Point(30, 600)
-$btnRunTweaks.Size = New-Object System.Drawing.Size(250, 40)
+$btnRunTweaks.Size = New-Object System.Drawing.Size(240, 38)
 $btnRunTweaks.Text = 'Run Tweaks'
 $btnRunTweaks.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
 $btnRunTweaks.BackColor = [System.Drawing.Color]::FromArgb(180, 30, 30)
 $btnRunTweaks.ForeColor = [System.Drawing.Color]::White
 $btnRunTweaks.FlatStyle = 'Flat'
+$btnRunTweaks.FlatAppearance.BorderColor = [System.Drawing.Color]::White
+$btnRunTweaks.FlatAppearance.BorderSize = 1
 $tabTweaks.Controls.Add($btnRunTweaks)
 
 # CONFIG TAB
