@@ -22,7 +22,7 @@ $form.Controls.Add($titleLabel)
 
 $tabControl = New-Object System.Windows.Forms.TabControl
 $tabControl.Location = New-Object System.Drawing.Point(20, 70)
-$tabControl.Size = New-Object System.Drawing.Size(1150, 680)
+$tabControl.Size = New-Object System.Drawing.Size(1150, 660)
 $tabControl.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
 $form.Controls.Add($tabControl)
 
@@ -714,15 +714,15 @@ $extrasTweaks = @(
 foreach ($tweak in $extrasTweaks) {
     $chk = New-Object System.Windows.Forms.CheckBox
     $chk.Location = New-Object System.Drawing.Point(30, $yPos)
-    $chk.Size = New-Object System.Drawing.Size(1080, 25)
+    $chk.Size = New-Object System.Drawing.Size(1080, 22)
     $chk.Text = $tweak.Name
     $chk.ForeColor = [System.Drawing.Color]::White
-    $chk.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+    $chk.Font = New-Object System.Drawing.Font('Segoe UI', 9)
     $chk.Tag = $tweak
     $chk.Checked = $true
     $tabExtras.Controls.Add($chk)
     $extrasChks[$tweak.Name] = $chk
-    $yPos += 30
+    $yPos += 24
 }
 
 $btnApplyExtras = New-Object System.Windows.Forms.Button
