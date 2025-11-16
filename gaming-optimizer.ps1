@@ -663,6 +663,186 @@ $btnDeselectAllPerf.FlatStyle = 'Flat'
 $btnDeselectAllPerf.Add_Click({ foreach ($chk in $perfChks.Values) { $chk.Checked = $false } })
 $tabPerformance.Controls.Add($btnDeselectAllPerf)
 
+# PROCESSES TAB (NEW!)
+$tabProcesses = New-Object System.Windows.Forms.TabPage
+$tabProcesses.Text = 'Processes'
+$tabProcesses.BackColor = [System.Drawing.Color]::FromArgb(15, 15, 15)
+$tabControl.TabPages.Add($tabProcesses)
+
+$lblProcessInfo = New-Object System.Windows.Forms.Label
+$lblProcessInfo.Location = New-Object System.Drawing.Point(20, 20)
+$lblProcessInfo.Size = New-Object System.Drawing.Size(1100, 30)
+$lblProcessInfo.Text = 'Process Priority Management - Lower background processes to boost gaming performance'
+$lblProcessInfo.Font = New-Object System.Drawing.Font('Segoe UI', 12, [System.Drawing.FontStyle]::Bold)
+$lblProcessInfo.ForeColor = [System.Drawing.Color]::FromArgb(220, 50, 50)
+$tabProcesses.Controls.Add($lblProcessInfo)
+
+# Common Background Processes Section
+$lblCommonProcs = New-Object System.Windows.Forms.Label
+$lblCommonProcs.Location = New-Object System.Drawing.Point(20, 60)
+$lblCommonProcs.Size = New-Object System.Drawing.Size(500, 25)
+$lblCommonProcs.Text = 'Common Background Processes to Lower'
+$lblCommonProcs.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
+$lblCommonProcs.ForeColor = [System.Drawing.Color]::FromArgb(200, 200, 200)
+$tabProcesses.Controls.Add($lblCommonProcs)
+
+$processChks = @{}
+$yPos = 90
+$xPos = 30
+
+$commonProcesses = @(
+    @{Name='Chrome (chrome.exe)'; Process='chrome'; Priority='Low'},
+    @{Name='Edge (msedge.exe)'; Process='msedge'; Priority='Low'},
+    @{Name='Firefox (firefox.exe)'; Process='firefox'; Priority='Low'},
+    @{Name='Discord (Discord.exe)'; Process='Discord'; Priority='BelowNormal'},
+    @{Name='Spotify (Spotify.exe)'; Process='Spotify'; Priority='BelowNormal'},
+    @{Name='Steam (steam.exe)'; Process='steam'; Priority='BelowNormal'},
+    @{Name='Epic Games Launcher'; Process='EpicGamesLauncher'; Priority='BelowNormal'},
+    @{Name='OneDrive (OneDrive.exe)'; Process='OneDrive'; Priority='Low'},
+    @{Name='Windows Update (wuauserv)'; Process='wuauserv'; Priority='Low'},
+    @{Name='Windows Defender (MsMpEng.exe)'; Process='MsMpEng'; Priority='BelowNormal'},
+    @{Name='Cortana (SearchUI.exe)'; Process='SearchUI'; Priority='Low'},
+    @{Name='Windows Security (SecurityHealthSystray)'; Process='SecurityHealthSystray'; Priority='Low'},
+    @{Name='Nvidia Share (nvcontainer.exe)'; Process='nvcontainer'; Priority='BelowNormal'},
+    @{Name='AMD Software (RadeonSoftware.exe)'; Process='RadeonSoftware'; Priority='BelowNormal'},
+    @{Name='GeForce Experience (GFExperience.exe)'; Process='GFExperience'; Priority='BelowNormal'},
+    @{Name='Origin (Origin.exe)'; Process='Origin'; Priority='BelowNormal'},
+    @{Name='Battle.net (Battle.net.exe)'; Process='Battle.net'; Priority='BelowNormal'},
+    @{Name='Razer Synapse (RzSynapse.exe)'; Process='RzSynapse'; Priority='BelowNormal'},
+    @{Name='Logitech G HUB (lghub.exe)'; Process='lghub'; Priority='BelowNormal'},
+    @{Name='MSI Afterburner (MSIAfterburner.exe)'; Process='MSIAfterburner'; Priority='BelowNormal'},
+    @{Name='Wallpaper Engine'; Process='wallpaper32'; Priority='Low'},
+    @{Name='OBS Studio (obs64.exe)'; Process='obs64'; Priority='BelowNormal'},
+    @{Name='Streamlabs OBS'; Process='Streamlabs OBS'; Priority='BelowNormal'},
+    @{Name='TeamViewer'; Process='TeamViewer'; Priority='Low'}
+)
+
+$columnCount = 0
+foreach ($proc in $commonProcesses) {
+    $chk = New-Object System.Windows.Forms.CheckBox
+    $chk.Location = New-Object System.Drawing.Point($xPos, $yPos)
+    $chk.Size = New-Object System.Drawing.Size(540, 20)
+    $chk.Text = $proc.Name
+    $chk.ForeColor = [System.Drawing.Color]::White
+    $chk.Font = New-Object System.Drawing.Font('Segoe UI', 9)
+    $chk.Tag = $proc
+    $chk.Checked = $true
+    $tabProcesses.Controls.Add($chk)
+    $processChks[$proc.Process] = $chk
+    
+    $yPos += 22
+    $columnCount++
+    
+    if ($columnCount -eq 12) {
+        $xPos = 580
+        $yPos = 90
+    }
+}
+
+# Priority Buttons
+$btnLowerProcesses = New-Object System.Windows.Forms.Button
+$btnLowerProcesses.Location = New-Object System.Drawing.Point(30, 560)
+$btnLowerProcesses.Size = New-Object System.Drawing.Size(300, 40)
+$btnLowerProcesses.Text = 'Lower Selected Processes'
+$btnLowerProcesses.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
+$btnLowerProcesses.BackColor = [System.Drawing.Color]::FromArgb(150, 20, 20)
+$btnLowerProcesses.ForeColor = [System.Drawing.Color]::White
+$btnLowerProcesses.FlatStyle = 'Flat'
+$btnLowerProcesses.Add_Click({
+    $result = [System.Windows.Forms.MessageBox]::Show("Lower priority for selected processes?`n`nThis will reduce CPU priority for background applications.", "Confirm", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question)
+    if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+        $count = 0
+        $notFound = 0
+        
+        foreach ($chk in $processChks.Values) {
+            if ($chk.Checked) {
+                $procInfo = $chk.Tag
+                $processes = Get-Process -Name $procInfo.Process -ErrorAction SilentlyContinue
+                
+                if ($processes) {
+                    foreach ($p in $processes) {
+                        try {
+                            $p.PriorityClass = $procInfo.Priority
+                            $count++
+                        } catch {
+                            # Process may have exited or access denied
+                        }
+                    }
+                } else {
+                    $notFound++
+                }
+            }
+        }
+        
+        $msg = "Successfully lowered $count process(es)!"
+        if ($notFound -gt 0) {
+            $msg += "`n$notFound process(es) not currently running."
+        }
+        [System.Windows.Forms.MessageBox]::Show($msg, "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }
+})
+$tabProcesses.Controls.Add($btnLowerProcesses)
+
+$btnResetProcesses = New-Object System.Windows.Forms.Button
+$btnResetProcesses.Location = New-Object System.Drawing.Point(350, 560)
+$btnResetProcesses.Size = New-Object System.Drawing.Size(250, 40)
+$btnResetProcesses.Text = 'Reset to Normal Priority'
+$btnResetProcesses.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+$btnResetProcesses.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
+$btnResetProcesses.ForeColor = [System.Drawing.Color]::White
+$btnResetProcesses.FlatStyle = 'Flat'
+$btnResetProcesses.Add_Click({
+    $count = 0
+    foreach ($chk in $processChks.Values) {
+        if ($chk.Checked) {
+            $procInfo = $chk.Tag
+            $processes = Get-Process -Name $procInfo.Process -ErrorAction SilentlyContinue
+            
+            if ($processes) {
+                foreach ($p in $processes) {
+                    try {
+                        $p.PriorityClass = 'Normal'
+                        $count++
+                    } catch {}
+                }
+            }
+        }
+    }
+    [System.Windows.Forms.MessageBox]::Show("Reset $count process(es) to normal priority!", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+})
+$tabProcesses.Controls.Add($btnResetProcesses)
+
+$btnSelectAllProcs = New-Object System.Windows.Forms.Button
+$btnSelectAllProcs.Location = New-Object System.Drawing.Point(620, 560)
+$btnSelectAllProcs.Size = New-Object System.Drawing.Size(150, 40)
+$btnSelectAllProcs.Text = 'Select All'
+$btnSelectAllProcs.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+$btnSelectAllProcs.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
+$btnSelectAllProcs.ForeColor = [System.Drawing.Color]::White
+$btnSelectAllProcs.FlatStyle = 'Flat'
+$btnSelectAllProcs.Add_Click({ foreach ($chk in $processChks.Values) { $chk.Checked = $true } })
+$tabProcesses.Controls.Add($btnSelectAllProcs)
+
+$btnDeselectAllProcs = New-Object System.Windows.Forms.Button
+$btnDeselectAllProcs.Location = New-Object System.Drawing.Point(780, 560)
+$btnDeselectAllProcs.Size = New-Object System.Drawing.Size(150, 40)
+$btnDeselectAllProcs.Text = 'Deselect All'
+$btnDeselectAllProcs.Font = New-Object System.Drawing.Font('Segoe UI', 10)
+$btnDeselectAllProcs.BackColor = [System.Drawing.Color]::FromArgb(40, 15, 15)
+$btnDeselectAllProcs.ForeColor = [System.Drawing.Color]::White
+$btnDeselectAllProcs.FlatStyle = 'Flat'
+$btnDeselectAllProcs.Add_Click({ foreach ($chk in $processChks.Values) { $chk.Checked = $false } })
+$tabProcesses.Controls.Add($btnDeselectAllProcs)
+
+# Info Label
+$lblProcHelp = New-Object System.Windows.Forms.Label
+$lblProcHelp.Location = New-Object System.Drawing.Point(30, 610)
+$lblProcHelp.Size = New-Object System.Drawing.Size(1080, 35)
+$lblProcHelp.Text = "ℹ️ Lowering process priority reduces CPU resources given to background apps, boosting game performance.`nChanges are temporary and reset when processes restart. Run before gaming for best results."
+$lblProcHelp.Font = New-Object System.Drawing.Font('Segoe UI', 8, [System.Drawing.FontStyle]::Italic)
+$lblProcHelp.ForeColor = [System.Drawing.Color]::FromArgb(180, 180, 180)
+$tabProcesses.Controls.Add($lblProcHelp)
+
 # EXTRAS TAB
 $tabExtras = New-Object System.Windows.Forms.TabPage
 $tabExtras.Text = 'Extras'
