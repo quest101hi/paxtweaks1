@@ -4,7 +4,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = 'ChargieTweaks'
+$form.Text = 'PaxTweaks'
 $form.Size = New-Object System.Drawing.Size(1200, 900)
 $form.StartPosition = 'CenterScreen'
 $form.FormBorderStyle = 'FixedDialog'
@@ -14,7 +14,7 @@ $form.BackColor = [System.Drawing.Color]::FromArgb(10, 10, 10)
 $titleLabel = New-Object System.Windows.Forms.Label
 $titleLabel.Location = New-Object System.Drawing.Point(20, 20)
 $titleLabel.Size = New-Object System.Drawing.Size(1150, 40)
-$titleLabel.Text = 'CHARGIETWEAKS - WINDOWS GAMING OPTIMIZER'
+$titleLabel.Text = 'PaxTWEAKS - WINDOWS GAMING OPTIMIZER'
 $titleLabel.Font = New-Object System.Drawing.Font('Segoe UI', 16, [System.Drawing.FontStyle]::Bold)
 $titleLabel.ForeColor = [System.Drawing.Color]::FromArgb(220, 50, 50)
 $titleLabel.TextAlign = 'MiddleCenter'
